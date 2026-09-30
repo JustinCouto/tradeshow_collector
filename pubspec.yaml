@@ -62,6 +62,7 @@ flutter:
 
   assets:
     - assets/images/socreate_logo.png
+    - assets/images/sign_in_background.jpg
 
   fonts:
     - family: PlusJakartaSans

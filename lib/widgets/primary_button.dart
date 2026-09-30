@@ -10,19 +10,21 @@ class PrimaryButton extends StatelessWidget {
     required this.onPressed,
     this.icon,
     this.busy = false,
+    this.height = 64,
   });
 
   final String label;
   final VoidCallback? onPressed;
   final IconData? icon;
   final bool busy;
+  final double height;
 
   @override
   Widget build(BuildContext context) {
     final enabled = onPressed != null && !busy;
     return SizedBox(
       width: double.infinity,
-      height: 64,
+      height: height,
       child: DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),

@@ -45,7 +45,7 @@ void main() {
   ) async {
     final session = await pumpApp(tester);
 
-    expect(find.text('Tradeshow Lead Capture'), findsOneWidget);
+    expect(find.text('Lead Capture'), findsOneWidget);
     expect(button(tester, 'Continue').onPressed, isNull);
 
     await tester.enterText(find.byType(TextField), '  Maria  Lopez ');
@@ -108,7 +108,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Sign out'));
     await tester.pumpAndSettle();
-    expect(find.text('Tradeshow Lead Capture'), findsOneWidget);
+    expect(find.text('Lead Capture'), findsOneWidget);
     expect(session.employeeName, isNull);
   });
 
@@ -162,6 +162,6 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Sign out'));
     await tester.pumpAndSettle();
-    expect(find.text('Tradeshow Lead Capture'), findsOneWidget);
+    expect(find.text('Lead Capture'), findsOneWidget);
   });
 }

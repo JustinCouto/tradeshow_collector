@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../app.dart';
@@ -66,103 +68,198 @@ class _SignInScreenState extends State<SignInScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
+    final screenHeight = MediaQuery.sizeOf(context).height;
     return Scaffold(
-      body: DecoratedBox(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.white, Color(0xFFF3F8EE)],
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Positioned(
+            top: -screenHeight * 0.17,
+            height: screenHeight * 1.37,
+            left: 0,
+            right: 0,
+            child: Image.asset(
+              'assets/images/sign_in_background.jpg',
+              fit: BoxFit.cover,
+              alignment: Alignment.topCenter,
+              excludeFromSemantics: true,
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) => SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight - 24,
-                ),
-                child: IntrinsicHeight(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Spacer(flex: 3),
-                      const Center(child: SoCreateLogo(width: 300)),
-                      const SizedBox(height: 36),
-                      const Text(
-                        'Tradeshow Lead Capture',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.4,
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0x40FFFFFF),
+                  Color(0x59FFFFFF),
+                  Color(0xCCFFFFFF),
+                  Color(0xDEFFFFFF),
+                  Color(0xE6FFFFFF),
+                ],
+                stops: [0, 0.15, 0.36, 0.65, 1],
+              ),
+            ),
+          ),
+          SafeArea(
+            bottom: false,
+            child: LayoutBuilder(
+              builder: (context, constraints) => SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const Spacer(flex: 5),
+                        Center(
+                          child: SoCreateLogo(
+                            width: math.min(400, constraints.maxWidth * 0.81),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        'Enter your name to start\ncollecting leads!',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 17,
-                          height: 1.45,
-                          color: AppColors.body,
+                        const SizedBox(height: 28),
+                        const Text(
+                          'TRADESHOW',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 2.4,
+                            color: AppColors.greenText,
+                          ),
                         ),
-                      ),
-                      const Spacer(flex: 4),
-                      const Text(
-                        'Employee Name',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Lead Capture',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 34,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.6,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      RawAutocomplete<String>(
-                        textEditingController: _name,
-                        focusNode: _nameFocus,
-                        // The keyboard covers the space below the field.
-                        optionsViewOpenDirection: OptionsViewOpenDirection.up,
-                        optionsBuilder: (value) =>
-                            matchEmployeeNames(_knownNames, value.text),
-                        onSelected: (_) => _nameFocus.unfocus(),
-                        fieldViewBuilder: (context, controller, focusNode, _) =>
-                            TextField(
-                              controller: controller,
-                              focusNode: focusNode,
-                              textCapitalization: TextCapitalization.words,
-                              textInputAction: TextInputAction.go,
-                              autocorrect: false,
-                              autofillHints: const [AutofillHints.name],
-                              style: const TextStyle(fontSize: 17),
-                              decoration: const InputDecoration(
-                                hintText: 'ex: Jr. Couto',
+                        const SizedBox(height: 10),
+                        const Text(
+                          'Enter your name to start\ncollecting leads!',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 17,
+                            height: 1.45,
+                            color: AppColors.body,
+                          ),
+                        ),
+                        const Spacer(flex: 2),
+                        _SignInPanel(
+                          bottomInset: bottomInset,
+                          children: [
+                            const Text(
+                              'Employee Name',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
                               ),
-                              // Submits what was typed rather than the first
-                              // suggestion, so a new "Mark" isn't turned into an
-                              // existing "Mark Chen".
-                              onSubmitted: (_) => _continue(),
                             ),
-                        optionsViewBuilder: (context, onSelected, options) =>
-                            _NameSuggestions(
-                              options: options.toList(),
-                              query: _name.text,
-                              onSelected: onSelected,
+                            const SizedBox(height: 10),
+                            RawAutocomplete<String>(
+                              textEditingController: _name,
+                              focusNode: _nameFocus,
+                              // The keyboard covers the space below the field.
+                              optionsViewOpenDirection:
+                                  OptionsViewOpenDirection.up,
+                              optionsBuilder: (value) =>
+                                  matchEmployeeNames(_knownNames, value.text),
+                              onSelected: (_) => _nameFocus.unfocus(),
+                              fieldViewBuilder:
+                                  (context, controller, focusNode, _) =>
+                                      TextField(
+                                        controller: controller,
+                                        focusNode: focusNode,
+                                        textCapitalization:
+                                            TextCapitalization.words,
+                                        textInputAction: TextInputAction.go,
+                                        autocorrect: false,
+                                        autofillHints: const [
+                                          AutofillHints.name,
+                                        ],
+                                        style: const TextStyle(fontSize: 17),
+                                        decoration: const InputDecoration(
+                                          hintText: 'ex: Jr. Couto',
+                                        ),
+                                        // Submits what was typed rather than the first
+                                        // suggestion, so a new "Mark" isn't turned into an
+                                        // existing "Mark Chen".
+                                        onSubmitted: (_) => _continue(),
+                                      ),
+                              optionsViewBuilder:
+                                  (context, onSelected, options) =>
+                                      _NameSuggestions(
+                                        options: options.toList(),
+                                        query: _name.text,
+                                        onSelected: onSelected,
+                                      ),
                             ),
-                      ),
-                      const SizedBox(height: 22),
-                      PrimaryButton(
-                        label: 'Continue',
-                        busy: _submitting,
-                        onPressed: _canContinue ? _continue : null,
-                      ),
-                      const SizedBox(height: 12),
-                    ],
+                            const SizedBox(height: 20),
+                            PrimaryButton(
+                              label: 'Continue',
+                              height: 56,
+                              busy: _submitting,
+                              onPressed: _canContinue ? _continue : null,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Rounded light-green sheet pinned to the bottom of the sign-in screen.
+class _SignInPanel extends StatelessWidget {
+  const _SignInPanel({required this.bottomInset, required this.children});
+
+  final double bottomInset;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        color: AppColors.greenTint,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x1A1E2433),
+            blurRadius: 24,
+            offset: Offset(0, -6),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(28, 12, 28, 20 + bottomInset),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFC6E4AE),
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+            ...children,
+          ],
         ),
       ),
     );
