@@ -9,6 +9,7 @@ class PrimaryButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.icon,
+    this.trailingIcon,
     this.busy = false,
     this.height = 64,
   });
@@ -16,6 +17,7 @@ class PrimaryButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
   final IconData? icon;
+  final IconData? trailingIcon;
   final bool busy;
   final double height;
 
@@ -70,6 +72,10 @@ class PrimaryButton extends StatelessWidget {
                       const SizedBox(width: 10),
                     ],
                     Text(label),
+                    if (trailingIcon != null) ...[
+                      const SizedBox(width: 10),
+                      Icon(trailingIcon, size: 22),
+                    ],
                   ],
                 ),
         ),

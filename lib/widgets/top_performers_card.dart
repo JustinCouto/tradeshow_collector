@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
 
 import '../models/lead.dart';
+import '../ordinal.dart';
 import '../theme.dart';
 
 /// Shared by every row so the lead counts line up in one column.
 const _countColumnWidth = 60.0;
 
-/// Top three employees, plus the signed-in employee's row when they are
-/// further down.
-class LeaderboardCard extends StatelessWidget {
-  const LeaderboardCard({
+/// Shared by every row so the names line up.
+const _rankColumnWidth = 60.0;
+
+/// About as wide as the leader's "1st", so every rank shares its center line
+/// while the group sits against the left edge.
+const _rankSlotWidth = 48.0;
+
+/// Top three employees and the show-wide total. "Show all" slides open the
+/// rest of the team.
+class TopPerformersCard extends StatefulWidget {
+  const TopPerformersCard({
     super.key,
     required this.entries,
     required this.employeeName,
@@ -20,11 +28,44 @@ class LeaderboardCard extends StatelessWidget {
   final String employeeName;
 
   @override
+  State<TopPerformersCard> createState() => _TopPerformersCardState();
+}
+
+class _TopPerformersCardState extends State<TopPerformersCard>
+    with SingleTickerProviderStateMixin {
+  bool _expanded = false;
+
+  late final _reveal = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 300),
+  )..addStatusListener((_) => setState(() {}));
+
+  late final _revealCurve = CurvedAnimation(
+    parent: _reveal,
+    curve: Curves.easeInOut,
+  );
+
+  void _toggle() {
+    setState(() => _expanded = !_expanded);
+    _expanded ? _reveal.forward() : _reveal.reverse();
+  }
+
+  @override
+  void dispose() {
+    _revealCurve.dispose();
+    _reveal.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final all = entries;
+    final employeeName = widget.employeeName;
+    final all = widget.entries;
     final top = all?.take(3).toList() ?? const <LeaderboardEntry>[];
-    final me = all?.where((e) => e.employeeName == employeeName).firstOrNull;
-    final showMeBelow = me != null && !top.contains(me);
+    final rest = all?.skip(3).toList() ?? const <LeaderboardEntry>[];
+    final canExpand = rest.isNotEmpty;
+    final expanded = _expanded && canExpand;
+    final showTotal = all?.fold<int>(0, (sum, e) => sum + e.leadCount) ?? 0;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(22),
@@ -83,7 +124,7 @@ class LeaderboardCard extends StatelessWidget {
                   const Padding(
                     padding: EdgeInsets.fromLTRB(22, 18, 22, 24),
                     child: Text(
-                      'No leads yet. Be the first on the board!',
+                      'No sign-ups yet. Be the first on the board!',
                       style: TextStyle(color: AppColors.body, fontSize: 15),
                     ),
                   )
@@ -92,11 +133,32 @@ class LeaderboardCard extends StatelessWidget {
                     entry: top.first,
                     isMe: top.first.employeeName == employeeName,
                   ),
-                  for (final entry in [...top.skip(1), if (showMeBelow) me])
+                  for (final entry in top.skip(1))
                     _RunnerUpRow(
                       entry: entry,
                       isMe: entry.employeeName == employeeName,
                     ),
+                  // Rows stay built while sliding closed, then leave the tree.
+                  if (canExpand && !_reveal.isDismissed)
+                    SizeTransition(
+                      sizeFactor: _revealCurve,
+                      alignment: Alignment.topCenter,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          for (final entry in rest)
+                            _RunnerUpRow(
+                              entry: entry,
+                              isMe: entry.employeeName == employeeName,
+                            ),
+                        ],
+                      ),
+                    ),
+                  _ShowTotalFooter(
+                    total: showTotal,
+                    expanded: expanded,
+                    onToggle: canExpand ? _toggle : null,
+                  ),
                 ],
               ],
             ),
@@ -120,7 +182,7 @@ class _LeaderRow extends StatelessWidget {
       child: Row(
         children: [
           SizedBox(
-            width: 84,
+            width: _rankColumnWidth,
             child: _Ordinal(rank: entry.rank, size: 44, color: AppColors.navy),
           ),
           Expanded(
@@ -170,7 +232,7 @@ class _LeaderRow extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  entry.leadCount == 1 ? 'lead' : 'leads',
+                  entry.leadCount == 1 ? 'sign-up' : 'sign-ups',
                   style: const TextStyle(
                     color: AppColors.greenText,
                     fontSize: 13,
@@ -202,7 +264,7 @@ class _RunnerUpRow extends StatelessWidget {
       child: Row(
         children: [
           SizedBox(
-            width: 84,
+            width: _rankColumnWidth,
             child: _Ordinal(
               rank: entry.rank,
               size: 26,
@@ -229,6 +291,126 @@ class _RunnerUpRow extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Navy bar with every team member's combined leads. [onToggle] is null when
+/// there is nobody beyond the top three to reveal.
+class _ShowTotalFooter extends StatelessWidget {
+  const _ShowTotalFooter({
+    required this.total,
+    required this.expanded,
+    required this.onToggle,
+  });
+
+  final int total;
+  final bool expanded;
+  final VoidCallback? onToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    const subtle = TextStyle(color: Color(0xB3FFFFFF), fontSize: 13);
+    return ColoredBox(
+      color: AppColors.navyCard,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(22, 12, 22, 12),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'SHOW TOTAL',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.1,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      const Flexible(
+                        child: Text(
+                          'All team members',
+                          overflow: TextOverflow.ellipsis,
+                          style: subtle,
+                        ),
+                      ),
+                      if (onToggle != null) ...[
+                        const Text('  ·  ', style: subtle),
+                        _ToggleLink(expanded: expanded, onTap: onToggle!),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              width: _countColumnWidth,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  '$total',
+                  style: const TextStyle(
+                    color: AppColors.brightGreen,
+                    fontSize: 30,
+                    fontWeight: FontWeight.w800,
+                    fontFeatures: [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ToggleLink extends StatelessWidget {
+  const _ToggleLink({required this.expanded, required this.onTap});
+
+  final bool expanded;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      container: true,
+      button: true,
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                expanded ? 'Show less' : 'Show all',
+                style: const TextStyle(
+                  color: AppColors.brightGreen,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              AnimatedRotation(
+                turns: expanded ? 0.5 : 0,
+                duration: const Duration(milliseconds: 280),
+                child: const Icon(
+                  Icons.arrow_drop_down,
+                  size: 20,
+                  color: AppColors.brightGreen,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -282,7 +464,7 @@ class _YouBadge extends StatelessWidget {
   }
 }
 
-/// Outlined "1st", "2nd", "3rd", "12th" styled like the mockup.
+/// "1st", "2nd", "3rd", "12th" in a softened solid color.
 class _Ordinal extends StatelessWidget {
   const _Ordinal({required this.rank, required this.size, required this.color});
 
@@ -290,45 +472,39 @@ class _Ordinal extends StatelessWidget {
   final double size;
   final Color color;
 
-  static String suffix(int n) {
-    if (n % 100 >= 11 && n % 100 <= 13) return 'th';
-    return switch (n % 10) {
-      1 => 'st',
-      2 => 'nd',
-      3 => 'rd',
-      _ => 'th',
-    };
-  }
-
   @override
   Widget build(BuildContext context) {
-    final outline = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = size > 30 ? 1.4 : 1.1
-      ..color = color;
-    return Text.rich(
-      TextSpan(
-        children: [
+    final faded = color.withValues(alpha: 0.7);
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: SizedBox(
+        width: _rankSlotWidth,
+        child: Text.rich(
           TextSpan(
-            text: '$rank',
-            style: TextStyle(
-              fontSize: size,
-              fontWeight: FontWeight.w400,
-              foreground: outline,
-              height: 1,
-            ),
+            children: [
+              TextSpan(
+                text: '$rank',
+                style: TextStyle(
+                  fontSize: size,
+                  fontWeight: FontWeight.w700,
+                  color: faded,
+                  height: 1,
+                ),
+              ),
+              TextSpan(
+                text: ordinalSuffix(rank),
+                style: TextStyle(
+                  fontSize: size * 0.5,
+                  fontWeight: FontWeight.w700,
+                  color: faded,
+                ),
+              ),
+            ],
           ),
-          TextSpan(
-            text: suffix(rank),
-            style: TextStyle(
-              fontSize: size * 0.5,
-              fontWeight: FontWeight.w400,
-              foreground: outline,
-            ),
-          ),
-        ],
+          textAlign: TextAlign.center,
+          semanticsLabel: 'Rank $rank',
+        ),
       ),
-      semanticsLabel: 'Rank $rank',
     );
   }
 }

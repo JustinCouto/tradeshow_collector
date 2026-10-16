@@ -85,7 +85,7 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            "Couldn't save the lead. Check the connection and try again.",
+            "Couldn't save the sign-up. Check the connection and try again.",
           ),
         ),
       );
@@ -100,15 +100,15 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
           AppHeader(employeeName: widget.employeeName),
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(22, 26, 22, 24),
+              padding: const EdgeInsets.fromLTRB(22, 14, 22, 24),
               children: [
                 Row(
                   children: [
                     const Expanded(
                       child: Text(
-                        'New Lead',
+                        'Notify on Launch',
                         style: TextStyle(
-                          fontSize: 30,
+                          fontSize: 28,
                           fontWeight: FontWeight.w800,
                           letterSpacing: -0.6,
                         ),
@@ -130,7 +130,7 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: 14),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -158,23 +158,25 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
                 ),
                 const SizedBox(height: 18),
                 _Field(
-                  label: 'Company',
-                  controller: _company,
-                  textCapitalization: TextCapitalization.words,
-                  autofillHints: const [AutofillHints.organizationName],
-                ),
-                const SizedBox(height: 18),
-                _Field(
                   label: 'Email address',
                   required: true,
                   controller: _email,
                   focusNode: _emailFocus,
                   keyboardType: TextInputType.emailAddress,
-                  textInputAction: TextInputAction.done,
                   autofillHints: const [AutofillHints.email],
                   errorText: _emailError,
+                ),
+                const SizedBox(height: 18),
+                _Field(
+                  label: 'Company',
+                  controller: _company,
+                  textCapitalization: TextCapitalization.words,
+                  textInputAction: TextInputAction.done,
+                  autofillHints: const [AutofillHints.organizationName],
                   onSubmitted: (_) {
-                    setState(() => _emailTouched = true);
+                    if (_email.text.trim().isNotEmpty) {
+                      setState(() => _emailTouched = true);
+                    }
                     _save();
                   },
                 ),
@@ -206,7 +208,7 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
               top: false,
               minimum: const EdgeInsets.fromLTRB(22, 16, 22, 16),
               child: PrimaryButton(
-                label: 'Save Lead',
+                label: 'Save Sign-up',
                 busy: _saving,
                 onPressed: _canSave ? _save : null,
               ),

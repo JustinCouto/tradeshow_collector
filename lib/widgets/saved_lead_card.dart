@@ -33,7 +33,7 @@ class SavedLeadCard extends StatelessWidget {
               SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Lead saved',
+                  'Sign-up saved',
                   style: TextStyle(
                     color: AppColors.greenText,
                     fontSize: 16,

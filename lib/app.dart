@@ -25,7 +25,7 @@ class LeadCaptureApp extends StatelessWidget {
       repository: repository,
       clock: clock,
       child: MaterialApp(
-        title: 'SoCreate Leads',
+        title: 'SoCreate Sign-ups',
         debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
         home: ListenableBuilder(

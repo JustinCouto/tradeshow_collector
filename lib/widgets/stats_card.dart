@@ -23,13 +23,13 @@ class StatsCard extends StatelessWidget {
               child: _Circle(size: 210, color: Color(0xFF2A4432)),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 22, 22),
+              padding: const EdgeInsets.fromLTRB(22, 18, 22, 16),
               child: IntrinsicHeight(
                 child: Row(
                   children: [
                     Expanded(
                       child: _Stat(
-                        label: 'Leads Added Today',
+                        label: "Today's Sign-ups",
                         value: stats?.leadsToday,
                         color: AppColors.brightGreen,
                       ),
@@ -67,11 +67,9 @@ class _Stat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         FittedBox(
           fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
           child: Text(
             label,
             maxLines: 1,
@@ -87,7 +85,7 @@ class _Stat extends StatelessWidget {
           value?.toString() ?? '–',
           style: TextStyle(
             color: color,
-            fontSize: 64,
+            fontSize: 52,
             fontWeight: FontWeight.w800,
             height: 1.05,
             letterSpacing: -1.5,

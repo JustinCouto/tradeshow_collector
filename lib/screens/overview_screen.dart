@@ -3,13 +3,13 @@ import 'package:intl/intl.dart';
 
 import '../app.dart';
 import '../models/lead.dart';
+import '../ordinal.dart';
 import '../theme.dart';
-import '../validation.dart';
 import '../widgets/app_header.dart';
-import '../widgets/leaderboard_card.dart';
 import '../widgets/primary_button.dart';
 import '../widgets/saved_lead_card.dart';
 import '../widgets/stats_card.dart';
+import '../widgets/top_performers_card.dart';
 import 'add_lead_screen.dart';
 
 class OverviewScreen extends StatefulWidget {
@@ -75,7 +75,6 @@ class _OverviewScreenState extends State<OverviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final firstName = firstNameOf(widget.employeeName);
     final today = AppServices.of(context).clock();
 
     return Scaffold(
@@ -88,29 +87,35 @@ class _OverviewScreenState extends State<OverviewScreen> {
               color: AppColors.green,
               onRefresh: _load,
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(22, 26, 22, 24),
+                padding: const EdgeInsets.fromLTRB(22, 14, 22, 24),
                 children: [
-                  Text(
-                    DateFormat('EEEE, MMM d').format(today).toUpperCase(),
-                    style: const TextStyle(
-                      color: AppColors.body,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 1.2,
-                    ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'Overview',
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 30,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.6,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        '${DateFormat('EEE, MMM d').format(today)}'
+                        '${ordinalSuffix(today.day)}',
+                        style: const TextStyle(
+                          color: AppColors.body,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    _justSaved == null
-                        ? 'Welcome, $firstName'
-                        : 'Nice work, $firstName!',
-                    style: const TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.6,
-                    ),
-                  ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 14),
                   if (_justSaved != null) ...[
                     SavedLeadCard(lead: _justSaved!),
                     const SizedBox(height: 18),
@@ -121,8 +126,20 @@ class _OverviewScreenState extends State<OverviewScreen> {
                   ],
                   StatsCard(stats: _stats),
                   if (!_loadFailed || _leaderboard != null) ...[
-                    const SizedBox(height: 18),
-                    LeaderboardCard(
+                    const SizedBox(height: 20),
+                    const Padding(
+                      padding: EdgeInsets.only(left: 2),
+                      child: Text(
+                        'Leaderboard',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    TopPerformersCard(
                       entries: _leaderboard,
                       employeeName: widget.employeeName,
                     ),
@@ -134,11 +151,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
           SafeArea(
             top: false,
             minimum: const EdgeInsets.fromLTRB(22, 8, 22, 16),
-            child: PrimaryButton(
-              label: 'New Lead',
-              icon: Icons.add,
-              onPressed: _openNewLead,
-            ),
+            child: PrimaryButton(label: 'New Sign-up', onPressed: _openNewLead),
           ),
         ],
       ),
