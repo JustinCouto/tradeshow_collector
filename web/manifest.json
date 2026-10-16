@@ -1,11 +1,11 @@
 {
-    "name": "tradeshow_collector",
-    "short_name": "tradeshow_collector",
+    "name": "SoCreate Sign-ups",
+    "short_name": "SoCreate",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#FFFFFF",
+    "theme_color": "#52A51F",
+    "description": "SoCreate tradeshow sign-up capture.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

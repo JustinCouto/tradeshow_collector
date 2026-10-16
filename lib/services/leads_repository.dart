@@ -5,6 +5,9 @@ import '../models/lead.dart';
 abstract interface class LeadsRepository {
   Future<void> addLead(NewLead lead, {required String employeeName});
 
+  /// Replaces the conversation notes on a saved lead. Blank clears them.
+  Future<void> saveNotes(String leadId, String? notes);
+
   /// [now] decides which local calendar day counts as "today".
   Future<EmployeeStats> fetchStats(
     String employeeName, {
@@ -27,12 +30,21 @@ class SupabaseLeadsRepository implements LeadsRepository {
   Future<void> addLead(NewLead lead, {required String employeeName}) async {
     // No .select() afterwards: the anon role can insert but not read rows back.
     await _client.from('customer_leads').insert({
+      'lead_id': lead.leadId,
       'first_name': lead.firstName,
       'last_name': lead.lastName,
       'company_name': lead.companyName,
       'email_address': lead.emailAddress,
       'employee_name': employeeName,
     });
+  }
+
+  @override
+  Future<void> saveNotes(String leadId, String? notes) async {
+    await _client.rpc<void>(
+      'set_lead_notes',
+      params: {'p_lead_id': leadId, 'p_notes': notes ?? ''},
+    );
   }
 
   @override
@@ -91,9 +103,18 @@ class InMemoryLeadsRepository implements LeadsRepository {
   final Map<String, int> _priorTotals;
   final List<({String employeeName, DateTime created})> _added = [];
 
+  /// Notes saved so far, by lead id.
+  final Map<String, String?> notes = {};
+
   @override
   Future<void> addLead(NewLead lead, {required String employeeName}) async {
     _added.add((employeeName: employeeName, created: DateTime.now()));
+  }
+
+  @override
+  Future<void> saveNotes(String leadId, String? notes) async {
+    final trimmed = notes?.trim();
+    this.notes[leadId] = (trimmed == null || trimmed.isEmpty) ? null : trimmed;
   }
 
   @override

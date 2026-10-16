@@ -72,4 +72,25 @@ void main() {
     expect(lead.emailAddress, 'jordan@northwind.io');
     expect(lead.initials, 'JR');
   });
+
+  test('NewLead gets a fresh v4 id that survives adding notes', () {
+    NewLead make() =>
+        NewLead(firstName: 'A', lastName: 'B', emailAddress: 'a@b.co');
+    final lead = make();
+    expect(
+      lead.leadId,
+      matches(
+        RegExp(
+          r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-'
+          r'[0-9a-f]{12}$',
+        ),
+      ),
+    );
+    expect(make().leadId, isNot(lead.leadId));
+
+    final withNotes = lead.withNotes('  Call back  ');
+    expect(withNotes.leadId, lead.leadId);
+    expect(withNotes.notes, 'Call back');
+    expect(withNotes.withNotes('   ').notes, isNull);
+  });
 }

@@ -11,6 +11,7 @@ import '../widgets/saved_lead_card.dart';
 import '../widgets/stats_card.dart';
 import '../widgets/top_performers_card.dart';
 import 'add_lead_screen.dart';
+import 'add_notes_screen.dart';
 
 class OverviewScreen extends StatefulWidget {
   const OverviewScreen({super.key, required this.employeeName});
@@ -73,6 +74,19 @@ class _OverviewScreenState extends State<OverviewScreen> {
     await _load();
   }
 
+  Future<void> _openNotes() async {
+    final lead = _justSaved;
+    if (lead == null) return;
+    final updated = await Navigator.of(context).push<NewLead>(
+      MaterialPageRoute(
+        builder: (_) =>
+            AddNotesScreen(employeeName: widget.employeeName, lead: lead),
+      ),
+    );
+    if (updated == null || !mounted) return;
+    setState(() => _justSaved = updated);
+  }
+
   @override
   Widget build(BuildContext context) {
     final today = AppServices.of(context).clock();
@@ -117,7 +131,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                   ),
                   const SizedBox(height: 14),
                   if (_justSaved != null) ...[
-                    SavedLeadCard(lead: _justSaved!),
+                    SavedLeadCard(lead: _justSaved!, onEditNotes: _openNotes),
                     const SizedBox(height: 18),
                   ],
                   if (_loadFailed) ...[

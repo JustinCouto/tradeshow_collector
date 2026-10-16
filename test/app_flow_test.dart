@@ -249,4 +249,103 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Sign-up Capture'), findsOneWidget);
   });
+
+  group('conversation notes', () {
+    const longNotes =
+        'Runs a 6-person writing team at Northwind. Interested in '
+        'collaborative screenwriting for their animated series pilot.';
+
+    Future<void> saveSignUp(WidgetTester tester) async {
+      await tester.tap(find.text('New Sign-up'));
+      await tester.pumpAndSettle();
+      await tester.enterText(field('First name'), 'Jordan');
+      await tester.enterText(field('Last name'), 'Reyes');
+      await tester.enterText(field('Email address'), 'jordan@northwind.io');
+      await tester.pump();
+      await tester.tap(find.text('Save Sign-up'));
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> writeNotes(WidgetTester tester, String notes) async {
+      await tester.enterText(find.byType(TextField), notes);
+      await tester.pump();
+      await tester.tap(find.text('Save Notes'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('add, expand, collapse and edit notes', (tester) async {
+      final repository = InMemoryLeadsRepository.sample();
+      await pumpApp(
+        tester,
+        prefs: {'employee_name': 'Maria Lopez'},
+        repository: repository,
+      );
+      await saveSignUp(tester);
+      expect(find.text('Sign-up saved'), findsOneWidget);
+      expect(find.text('CONVERSATION NOTES'), findsNothing);
+
+      await tapLink(tester, 'Add Conversation Notes');
+      expect(find.text('Add Notes'), findsOneWidget);
+      expect(find.text('jordan@northwind.io'), findsOneWidget);
+      expect(button(tester, 'Save Notes').onPressed, isNull);
+
+      await writeNotes(tester, '  $longNotes  ');
+      expect(find.text('Add Notes'), findsNothing);
+      expect(find.text('Sign-up saved'), findsOneWidget);
+      expect(repository.notes.values.single, longNotes);
+      expect(find.text('CONVERSATION NOTES'), findsOneWidget);
+      expect(find.text(longNotes), findsOneWidget);
+      expect(find.text('Add Conversation Notes'), findsNothing);
+      expect(find.byTooltip('Edit notes'), findsNothing);
+
+      await tapLink(tester, 'Show more');
+      expect(find.text('Show less'), findsOneWidget);
+      expect(find.byTooltip('Edit notes'), findsOneWidget);
+
+      await tapLink(tester, 'Show less');
+      expect(find.text('Show more'), findsOneWidget);
+      expect(find.byTooltip('Edit notes'), findsNothing);
+
+      await tapLink(tester, 'Show more');
+      await tester.tap(find.byTooltip('Edit notes'));
+      await tester.pumpAndSettle();
+      expect(find.text('Edit Notes'), findsOneWidget);
+      expect(find.text(longNotes), findsOneWidget);
+
+      await writeNotes(tester, '$longNotes Follow up Oct 19.');
+      expect(repository.notes.values.single, '$longNotes Follow up Oct 19.');
+      expect(find.text('$longNotes Follow up Oct 19.'), findsOneWidget);
+    });
+
+    testWidgets('cancel leaves the notes unchanged', (tester) async {
+      final repository = InMemoryLeadsRepository.sample();
+      await pumpApp(
+        tester,
+        prefs: {'employee_name': 'Maria Lopez'},
+        repository: repository,
+      );
+      await saveSignUp(tester);
+
+      await tapLink(tester, 'Add Conversation Notes');
+      await tester.enterText(find.byType(TextField), 'Never saved');
+      await tester.pump();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(repository.notes, isEmpty);
+      expect(find.text('Add Conversation Notes'), findsOneWidget);
+      expect(find.text('Never saved'), findsNothing);
+    });
+
+    testWidgets('short notes show in full without Show more', (tester) async {
+      await pumpApp(tester, prefs: {'employee_name': 'Maria Lopez'});
+      await saveSignUp(tester);
+
+      await tapLink(tester, 'Add Conversation Notes');
+      await writeNotes(tester, 'Demo');
+      expect(find.text('Demo'), findsOneWidget);
+      expect(find.text('Show more'), findsNothing);
+      expect(find.byTooltip('Edit notes'), findsOneWidget);
+    });
+  });
 }
